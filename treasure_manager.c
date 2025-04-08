@@ -51,7 +51,6 @@ void log_action(const char *hunt_id, const char *action) {
     write(log_fd, log_entry, strlen(log_entry));
     close(log_fd);
 
-    // Creare symlink după log
     create_symlink_for_log(hunt_id);
 }
 
