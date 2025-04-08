@@ -202,7 +202,7 @@ void remove_hunt(const char *hunt_id) {
 
     char symlink_name[256];
     snprintf(symlink_name, sizeof(symlink_name), "logged_hunt-%s", hunt_id);
-    unlink(symlink_name);  // Ștergem și symlink-ul dacă există
+    unlink(symlink_name);  
 
     
 }
@@ -229,6 +229,3 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-//nu afiseaza in log ca am incercat view la ceva ce nu exista.
-
-//fisierul de legatura simbolica dupa stergerea huntului nu trebuie sters?
