@@ -6,18 +6,23 @@
 #include <string.h>
 #include <fcntl.h>
 #include <time.h>
+#include <signal.h>
+#include <dirent.h>
 
-
+#define CMD_FILE "monitor_command.txt"
+#define TREASURE_FILE "treasures.dat"
 #define LOG_FILE "logged_hunt"
 
+
 typedef struct {
-    int treasure_id;
+    char treasure_id;
     char username[32];
     double latitude;
     double longitude;
     char clue[128];
     int value;
 } Treasure;
+
 
 void create_symlink_for_log(const char *hunt_id) {
     char target[256];
@@ -242,10 +247,107 @@ void remove_hunt(const char *hunt_id) {
 	}
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 3) {
-        printf("Not enough arguments.\n");
-        return 1;
+void listeaza_vanatori() 
+{
+    DIR *dir = opendir(".");
+    struct dirent *entry;
+    char cale[256];
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (entry->d_type == DT_DIR && strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
+        {
+            
+            size_t len = strlen(entry->d_name) + strlen(TREASURE_FILE) + 2; // +2 pentru "/" si '\0'
+
+            if (len >= sizeof(cale)) 
+            {
+                // Dacă dimensiunea depaseste buffer-ul, ignor acest director
+                continue;
+            }
+
+            
+            snprintf(cale, sizeof(cale), "%s/%s", entry->d_name, TREASURE_FILE);
+            FILE *fis = fopen(cale, "rb");
+            if (!fis)
+                continue;
+            int count = 0;
+            Treasure c;
+            while (fread(&c, sizeof(Treasure), 1, fis) == 1)
+                count++;
+            fclose(fis);
+            printf("Vanatoare: %s | Comori: %d\n", entry->d_name, count);
+        }
+    }
+    closedir(dir);
+}
+
+
+void gestioneaza_comanda(int semnal) 
+{
+    FILE *fis=fopen("monitor_cmd.txt","r");
+    if(!fis) 
+    {
+        perror("Eroare la deschiderea fisierului de comenzi");
+        return;
+    }
+    char comanda[64],vanatoare[64];
+    int id;
+    fscanf(fis,"%s",comanda);
+    if(strcmp(comanda,"list_hunts")==0)
+    {
+        listeaza_vanatori();
+    } 
+    else if(strcmp(comanda,"list_treasures")==0)
+    {       
+        fscanf(fis,"%s",vanatoare);
+        vanatoare[strcspn(vanatoare,"\n")]='\0';
+        list_treasures(vanatoare);
+        strcpy(vanatoare,"");
+    } 
+
+    else if(strcmp(comanda,"view_treasure")==0)
+
+    {   
+        fscanf(fis,"%s",vanatoare);
+        fscanf(fis,"%d",&id);
+        view_treasure(vanatoare,id);
+        strcpy(vanatoare,"");
+    }
+
+    fclose(fis);
+
+}
+
+void opreste_monitor(int semnal) 
+{
+    printf("Monitorul se opreste...\n");
+    usleep(3000000);
+    exit(0);
+
+}
+
+
+
+int main(int argc,char *argv[])
+{
+    if(argc==2 && strcmp(argv[1],"--monitor")==0)
+    {
+        struct sigaction sa;
+        sa.sa_handler = gestioneaza_comanda;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+        sigaction(SIGUSR1, &sa, NULL);
+        struct sigaction sa_term;
+        sa_term.sa_handler = opreste_monitor;
+        sigemptyset(&sa_term.sa_mask);
+        sa_term.sa_flags = 0;
+        sigaction(SIGTERM, &sa_term, NULL);
+
+        while(1) 
+        {
+            pause();
+        }
+
     }
 
     if (strcmp(argv[1], "--add") == 0) {
