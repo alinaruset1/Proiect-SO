@@ -6,14 +6,15 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-pid_t pid_monitor=-1;
-int monitor_terminat=0;
+pid_t pid_monitor = -1;
+int monitor_terminat = 0;
+int monitor_inchid = 0;
 
-void tratare_sigchld(int semnal)
-{
+void tratare_sigchld(int semnal) {
     int status;
-    waitpid(pid_monitor, &status, 0); 
+    waitpid(pid_monitor, &status, 0);
     monitor_terminat = 1;
+    monitor_inchid = 0;
     printf("Monitorul s-a oprit cu statusul: %d\n", WEXITSTATUS(status));
 }
 
@@ -42,6 +43,12 @@ int main(void)
         if(!fgets(comanda_utilizator,sizeof(comanda_utilizator),stdin))
             continue;
         comanda_utilizator[strcspn(comanda_utilizator,"\n")]=0;
+        
+        if (monitor_inchid && !monitor_terminat) {
+            printf("Monitorul se închide. Așteaptă finalizarea...\n");
+            continue;
+        }
+        
         if(strcmp(comanda_utilizator,"start_monitor")==0)
         {
             if(pid_monitor>0 && !monitor_terminat)
@@ -83,11 +90,13 @@ int main(void)
                 printf("Monitorul nu ruleaza\n");
                 continue;
             }
-            char comoara[64];
-            printf("Intorduceti vanatoarea:");
-            scanf("%s",comoara);
+            char vanatoare[64], id[64];
+            if (sscanf(comanda_utilizator, "list_treasures %s", vanatoare) != 1){
+        		printf("Format corect: list_treasures <hunt_id> <treasure_id>\n");
+        		continue;
+    		}
             char comanda_finala[128];
-            sprintf(comanda_finala, "list_treasures %s",comoara);
+            sprintf(comanda_finala, "list_treasures %s",vanatoare);
             scrie_comanda(comanda_finala);
             kill(pid_monitor, SIGUSR1);
         } 
@@ -117,6 +126,7 @@ int main(void)
                 continue;
             }
             kill(pid_monitor,SIGTERM);
+            monitor_inchid = 1;
             printf("Astept sa se opreasca monitorul...\n");
         } 
         else if(strcmp(comanda_utilizator,"exit")==0)
