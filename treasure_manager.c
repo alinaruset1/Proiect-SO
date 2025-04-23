@@ -251,7 +251,7 @@ void listeaza_vanatori()
 {
     DIR *dir = opendir(".");
     struct dirent *entry;
-    char cale[256];
+    char cale[512];
     while ((entry = readdir(dir)) != NULL)
     {
         if (entry->d_type == DT_DIR && strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
@@ -304,9 +304,7 @@ void gestioneaza_comanda(int semnal)
         list_treasures(vanatoare);
         strcpy(vanatoare,"");
     } 
-
     else if(strcmp(comanda,"view_treasure")==0)
-
     {   
         fscanf(fis,"%s",vanatoare);
         fscanf(fis,"%d",&id);
