@@ -319,7 +319,7 @@ void gestioneaza_comanda(int semnal)
 void opreste_monitor(int semnal) 
 {
     printf("Monitorul se opreste...\n");
-    usleep(3000000);
+    usleep(6000000);
     exit(0);
 
 }
@@ -328,8 +328,7 @@ void opreste_monitor(int semnal)
 
 int main(int argc,char *argv[])
 {
-    if(argc==2 && strcmp(argv[1],"--monitor")==0)
-    {
+   
         struct sigaction sa;
         sa.sa_handler = gestioneaza_comanda;
         sigemptyset(&sa.sa_mask);
@@ -345,8 +344,6 @@ int main(int argc,char *argv[])
         {
             pause();
         }
-
-    }
 
     if (strcmp(argv[1], "--add") == 0) {
         add_treasure(argv[2]);

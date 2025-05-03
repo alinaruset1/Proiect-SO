@@ -60,7 +60,7 @@ int main(void)
             pid_monitor=fork();
             if(pid_monitor==0)
             {
-                execlp("./treasure_manager", "treasure_manager", "--monitor", (char *)NULL);
+                execlp("./treasure_manager", "treasure_manager", NULL);
                 perror("Eroare la pornirea monitorului");
                 exit(1);
             } 
