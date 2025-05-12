@@ -345,6 +345,7 @@ int main(int argc,char *argv[])
             pause();
         }
 }
+
     if (strcmp(argv[1], "--add") == 0) {
         add_treasure(argv[2]);
     } else if (strcmp(argv[1], "--list") == 0 && argc==3) {
