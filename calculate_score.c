@@ -15,13 +15,13 @@ typedef struct {
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        fprintf(stderr, "Utilizare: %s <hunt_id>\n", argv[0]);
+        fprintf(stderr, "Format: %s <hunt_id>\n", argv[0]);
         return 1;
     }
 
     char initial_dir[256];
     if (getcwd(initial_dir, sizeof(initial_dir)) == NULL) {
-        perror("Eroare la obținerea directorului curent înainte de schimbare");
+        perror("Error getting current directory before changing");
         return 1;
     }
 
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     FILE *file = fopen(filepath, "rb");
 
     if (!file) {
-        perror("Eroare la deschiderea fișierului treasures.dat");
+        perror("Failed to open treasures.dat file");
         return 1;
     }
 
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
         if (!current) {
             struct UserScore *new_user = malloc(sizeof(struct UserScore));
             if (new_user == NULL) {
-                fprintf(stderr, "Eroare la alocarea memoriei pentru structura UserScore.\n");
+                fprintf(stderr, "Memory allocation error for UserScore.\n");
                 fclose(file);
                 while (head) { // Free any previously allocated memory
                     struct UserScore *temp = head;
@@ -76,20 +76,20 @@ int main(int argc, char *argv[]) {
 
     struct UserScore *current = head;
     while (current) {
-        printf("Utilizator: %s | Scor: %d\n", current->username, current->score);
+        printf("User: %s | Score: %d\n", current->username, current->score);
         struct UserScore *temp = current;
         current = current->next;
         free(temp);
     }
 
     if (chdir("..") != 0) {
-        perror("Eroare la schimbarea directorului");
+        perror("Error changing directory.");
         return 1;
     }
 
     // Restore the original directory before exiting
     if (chdir(initial_dir) != 0) {
-        perror("Eroare la restaurarea directorului inițial");
+        perror("Error restoring the initial directory.");
         return 1;
     }
 

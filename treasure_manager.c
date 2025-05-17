@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -8,10 +9,11 @@
 #include <time.h>
 #include <signal.h>
 #include <dirent.h>
+#define DELIMITER '\x1E'
 
-#define CMD_FILE "monitor_command.txt"
 #define TREASURE_FILE "treasures.dat"
 #define LOG_FILE "logged_hunt"
+
 
 
 typedef struct {
@@ -23,6 +25,12 @@ typedef struct {
     int value;
 } Treasure;
 
+
+void print_result(const char *msg) {
+    printf("%s", msg);
+    fputc(DELIMITER, stdout);
+    fflush(stdout);
+}
 
 void create_symlink_for_log(const char *hunt_id) {
     char target[256];
@@ -66,7 +74,7 @@ void add_treasure(const char *hunt_id) {
     int fd_read = open(file_path, O_RDONLY);
     Treasure t;
     int new_id;
-    printf("Treasure ID: ");
+    print_result("Treasure ID: ");
     scanf("%d", &new_id);
     if (fd_read != -1) {
         while (read(fd_read, &t, sizeof(Treasure)) > 0) {
@@ -89,11 +97,11 @@ void add_treasure(const char *hunt_id) {
     }
 
     t.treasure_id = new_id;
-    printf("User: "); scanf("%s", t.username);
-    printf("Latitude: "); scanf("%lf", &t.latitude);
-    printf("Longitude: "); scanf("%lf", &t.longitude);
-    printf("Clue: "); scanf(" %[^\n]", t.clue);
-    printf("Value: "); scanf("%d", &t.value);
+    print_result("User: "); scanf("%s", t.username);
+    print_result("Latitude: "); scanf("%lf", &t.latitude);
+    print_result("Longitude: "); scanf("%lf", &t.longitude);
+    print_result("Clue: "); scanf(" %[^\n]", t.clue);
+    print_result("Value: "); scanf("%d", &t.value);
 
     write(fd, &t, sizeof(Treasure));
     close(fd);
@@ -275,7 +283,7 @@ void listeaza_vanatori()
             while (fread(&c, sizeof(Treasure), 1, fis) == 1)
                 count++;
             fclose(fis);
-            printf("Vanatoare: %s | Comori: %d\n", entry->d_name, count);
+            printf("Hunt: %s | Treasures: %d\n", entry->d_name, count);
         }
     }
     closedir(dir);
@@ -287,7 +295,7 @@ void gestioneaza_comanda(int semnal)
     FILE *fis=fopen("monitor_cmd.txt","r");
     if(!fis) 
     {
-        perror("Eroare la deschiderea fisierului de comenzi");
+        perror("Failed to open command file.");
         return;
     }
     char comanda[64],vanatoare[64];
@@ -318,7 +326,7 @@ void gestioneaza_comanda(int semnal)
 
 void opreste_monitor(int semnal) 
 {
-    printf("Monitorul se opreste...\n");
+    print_result("The monitor is shutting down...\n");
     usleep(6000000);
     exit(0);
 
@@ -357,8 +365,9 @@ int main(int argc,char *argv[])
     } else if (strcmp(argv[1], "--remove_treasure") == 0 && argc == 4) {
         remove_treasure(argv[2], atoi(argv[3]));
     } else {
-        printf("Invalid command.\n");
+        print_result("Invalid command.\n");
     }
     return 0;
 }
+
 
